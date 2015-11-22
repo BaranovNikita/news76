@@ -3,11 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/swipe_container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#040404">
+    android:layout_height="match_parent">
 
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/listView" />
+        android:id="@+id/listView"
+        android:divider="#ffffff"/>
 </android.support.v4.widget.SwipeRefreshLayout>

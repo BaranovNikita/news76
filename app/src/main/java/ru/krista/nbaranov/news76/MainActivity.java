@@ -1,11 +1,11 @@
 package ru.krista.nbaranov.news76;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -14,7 +14,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.jsoup.Jsoup;
@@ -30,15 +31,15 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private ListView listView;
     static final String BLOG_URL = "http://76.ru/text/rss.xml";
-    static final String TAG_titular = "rss channel item title";
-    public ArrayList<String> titles = new ArrayList<>();
+    static final String TAG_titular = "rss channel item";
+    public ArrayList<News> newsArary = new ArrayList<>();
     SwipeRefreshLayout swipeLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -60,6 +61,15 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         listView = (ListView) findViewById(R.id.listView);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                                    long id) {
+                Intent intent = new Intent(MainActivity.this, NewsDisplay.class);
+                intent.putExtra("link", newsArary.get(position).getLink());
+                startActivity(intent);
+            }
+        });
         swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(onRefreshListener);
         swipeLayout.setColorSchemeColors(
@@ -69,21 +79,27 @@ public class MainActivity extends AppCompatActivity
 
     private void fillListViewFromDB() {
         DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-        Cursor cursor = db.getListItem();
-        if (cursor != null) {
+        //db.onUpgrade(db.getWritableDatabase(),1,2);
+        Cursor cursor = db.getNews();
+        if (cursor.getCount() > 0) {
             cursor.moveToNext();
             do {
-                titles.add(cursor.getString(1));
+                News news = new News();
+                news.setId(cursor.getString(cursor.getColumnIndex(DatabaseHandler.KEY_ID)));
+                news.setTitle(cursor.getString(cursor.getColumnIndex(DatabaseHandler.TITLE_NEWS)));
+                news.setDate(cursor.getString(cursor.getColumnIndex(DatabaseHandler.DATE_NEWS)));
+                news.setLink(cursor.getString(cursor.getColumnIndex(DatabaseHandler.LINK_NEWS)));
+                newsArary.add(news);
             } while (cursor.moveToNext());
+            NewsAdapter arrayAdapter = new NewsAdapter(getApplication().getApplicationContext(), newsArary);
+            listView.setAdapter(arrayAdapter);
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplication().getApplicationContext(), android.R.layout.simple_list_item_1, titles);
-        listView.setAdapter(arrayAdapter);
     }
 
     SwipeRefreshLayout.OnRefreshListener onRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
         @Override
         public void onRefresh() {
-            MyTask mt = new MyTask();
+            GetNewsAsync mt = new GetNewsAsync();
             mt.execute();
             swipeLayout.setRefreshing(false);
         }
@@ -101,34 +117,24 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        return id == R.id.action_settings || super.onOptionsItemSelected(item);
 
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            // Handle the camera action
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -146,25 +152,27 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    class MyTask extends AsyncTask<Void, Void, Void> {
+    class GetNewsAsync extends AsyncTask<Void, Void, Void> {
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+
         @Override
         protected Void doInBackground(Void... params) {
 
             try {
                 Document doc = Jsoup.connect(BLOG_URL).ignoreContentType(true).get();
-                Elements links = doc.select(TAG_titular);
-
-                for (Element link : links) {
-                    titles.add(link.text());
-                }
-
-                if (titles.size() == 0) {
-                    titles.add("Empty result");
+                Elements items = doc.select(TAG_titular);
+                for (Element item : items) {
+                    News news = new News();
+                    int start = item.toString().indexOf("<link>") + 6;
+                    int stop = item.toString().indexOf("<description>") - 3;
+                    news.setId(item.select("guid").text());
+                    news.setTitle(item.select("title").text());
+                    news.setDate(item.select("pubDate").text());
+                    news.setLink(item.toString().substring(start, stop));
+                    db.addNews(news);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                titles.clear();
-                titles.add("Exception: " + ex.toString());
             }
 
 
@@ -174,11 +182,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getApplication().getApplicationContext(), android.R.layout.simple_list_item_1, titles);
-            listView.setAdapter(arrayAdapter);
-            DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-
-            db.addListItem(titles);
+            fillListViewFromDB();
         }
     }
 }
