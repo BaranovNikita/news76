@@ -1,5 +1,6 @@
 package ru.krista.nbaranov.news76;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -45,6 +46,13 @@ public class NewsDisplay extends Activity {
         String title = "title";
         String img_src = "";
         String description_text = "";
+        ProgressDialog progress;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progress = ProgressDialog.show(NewsDisplay.this, getResources().getString(R.string.downloading),
+                    getResources().getString(R.string.wait), true);
+        }
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -76,6 +84,7 @@ public class NewsDisplay extends Activity {
             description.setText(Html.fromHtml("<b>" + title + "</b>" + "<br />" +
                     "" + description_text + "" + "<br />" +
                     "" + DateAdded + ""));
+            progress.dismiss();
         }
     }
 }

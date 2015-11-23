@@ -17,6 +17,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "MyDatabase";
     private static final String TABLE_LIST = "my_news";
     public static final String KEY_ID = "id";
+    public static final String GUID = "GUID";
     public static final String TITLE_NEWS = "news_title";
     public static final String LINK_NEWS = "news_link";
     public static final String DATE_NEWS = "news_date";
@@ -29,7 +30,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_LIST_TABLE = "CREATE TABLE " + TABLE_LIST + "(" + KEY_ID
-                + " TEXT," + TITLE_NEWS + " TEXT," + LINK_NEWS + " TEXT," + DATE_NEWS + " DATETIME DEFAULT CURRENT_TIMESTAMP)";
+                + " INTEGER,"+ GUID + " TEXT UNIQUE," + TITLE_NEWS + " TEXT," + LINK_NEWS + " TEXT," + DATE_NEWS + " DATETIME DEFAULT CURRENT_TIMESTAMP)";
 
         db.execSQL(CREATE_LIST_TABLE);
     }
@@ -44,11 +45,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_ID, news.getId());
+        values.put(GUID, news.getId());
         values.put(TITLE_NEWS, news.getTitle());
         values.put(LINK_NEWS, news.getLink());
         values.put(DATE_NEWS,Utils.getDateTime(news.getDate()));
-        db.insert(TABLE_LIST, null, values);
+        db.insertWithOnConflict(TABLE_LIST, null, values,SQLiteDatabase.CONFLICT_REPLACE);
         db.close();
     }
 

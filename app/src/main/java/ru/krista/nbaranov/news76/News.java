@@ -29,11 +29,11 @@ public class News {
         this.date = _date;
     }
     public void setId(String _id) {
-        this.date = _id;
+        this.id = _id;
     }
 
     @Override
     public String toString() {
-        return this.getTitle();
+        return this.getId() + "\n" + this.getDate() + "\n" + this.getTitle() + "\n" + this.getLink();
     }
 }

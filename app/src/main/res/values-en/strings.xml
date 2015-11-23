@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">News76</string>
+    <string name="app_descrip">Portal 76.RU</string>
+    <string name="app_credits">Laboratory work for Tensor</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="update">Update</string>
+    <string name="about">About</string>
+    <string name="exit">Exit</string>
+
+    <string name="downloading">Download</string>
+    <string name="wait">Please Wait</string>
+    <string name="wanna_update">Update news?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="no_connection">No connection</string>
+    <string name="yes_connection">Connected</string>
+
+    <string name="title_activity_display_news">DisplayNews</string>
+    <string name="title_activity_news_display">NewsDisplay</string>
+</resources>
