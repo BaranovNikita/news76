@@ -14,13 +14,13 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, final Intent intent) {
 
 
-        if (intent.getExtras() != null) {
+        if (intent.getExtras() != null && MainActivity.getInstance() != null) {
             final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             final NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
 
-            if (ni != null && ni.isConnectedOrConnecting()) {
+            if (ni != null && ni.isConnectedOrConnecting() && MainActivity.getInstance() != null) {
                 Toast.makeText(context, MainActivity.getInstance().getResources().getString(R.string.yes_connection) , Toast.LENGTH_LONG).show();
-                MainActivity.getInstance().displayAlert();
+                MainActivity.getInstance().showUpdateDialog();
             } else if (intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, Boolean.FALSE)) {
                 Toast.makeText(context, MainActivity.getInstance().getResources().getString(R.string.no_connection), Toast.LENGTH_LONG).show();
             }

@@ -47,6 +47,7 @@ public class NewsDisplay extends Activity {
         String img_src = "";
         String description_text = "";
         ProgressDialog progress;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -81,9 +82,7 @@ public class NewsDisplay extends Activity {
             collapsingToolbarLayout.setTitle(title);
             new DownloadImageTask(imageToolbar)
                     .execute(img_src);
-            description.setText(Html.fromHtml("<b>" + title + "</b>" + "<br />" +
-                    "" + description_text + "" + "<br />" +
-                    "" + DateAdded + ""));
+            description.setText(String.format("%s\n\n%s%s\n\n", title, description_text, DateAdded));
             progress.dismiss();
         }
     }
