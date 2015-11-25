@@ -29,6 +29,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import ru.krista.nbaranov.news76.helpers.DatabaseHandler;
 import ru.krista.nbaranov.news76.helpers.Utils;
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity
                 news.setLink(cursor.getString(cursor.getColumnIndex(DatabaseHandler.LINK_NEWS)));
                 newsArary.add(news);
             } while (cursor.moveToNext());
+            Collections.reverse(newsArary);
             NewsAdapter arrayAdapter = new NewsAdapter(getApplication().getApplicationContext(), newsArary);
             listView.setAdapter(arrayAdapter);
         }
@@ -207,6 +209,7 @@ public class MainActivity extends AppCompatActivity
             try {
                 Document doc = Jsoup.connect(BLOG_URL).ignoreContentType(true).get();
                 Elements items = doc.select(TAG_titular);
+                Collections.reverse(items);
                 for (Element item : items) {
                     News news = new News();
                     int start = item.toString().indexOf("<link>") + 6;
